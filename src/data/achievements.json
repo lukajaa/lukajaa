@@ -1,0 +1,9 @@
+{
+  "2013-12-31": {"type": "running", "description": "First Run!", "link": "https://www.strava.com/activities/6385566510", "important": true},
+  "2014-2-8": {"type": "programming", "description": "Scratch Account Created", "link": "https://scratch.mit.edu/users/lukaja/", "important": false},
+  "2016-9-5": {"type": "running", "description": "First XC Race", "link": "", "important": true},
+  "2021-9-5": {"type": "programming", "description": "Two SDV Mods are Published", "link": "https://www.nexusmods.com/users/121487748?tab=user+files", "important": false},
+  "2021-10-16": {"type": "programming", "description": "Bay Clock is Released!", "link": "https://github.com/lukajaa/clock", "important": true},
+  "2022-3-25": {"type": "running", "description": "1600m and 3200m PRs", "link": "https://www.athletic.net/TrackAndField/meet/452719/results", "important": true},
+  "2023-2-2": {"type": "programming", "description": "Bay Clock 2 is Released!", "link": "https://github.com/lukajaa/bay-clock-2", "important": true}
+}
