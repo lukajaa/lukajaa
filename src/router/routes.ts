@@ -6,6 +6,14 @@ const routes: RouteRecordRaw[] = [
     component: () => import('src/pages/HomePage.vue')
   },
   {
+    path: '/running',
+    component: () => import('src/pages/RunningPage.vue')
+  },
+  {
+    path: '/programming',
+    component: () => import('src/pages/ProgrammingPage.vue')
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },

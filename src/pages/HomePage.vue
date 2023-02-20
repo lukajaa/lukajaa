@@ -1,7 +1,7 @@
 <template>
   <div>
     <Transition>
-      <div v-if="!started" class="starting-screen fixed text-center text-white bg-black items-center column">
+      <div v-if="!started" class="starting-screen fixed text-center text-white items-center column">
         <div class="absolute-center">
           <h1 class="col">Lucas K. Chang</h1>
           <h4 class="col">Run the BCL Championships course with me as I pass through personal milestones</h4>
@@ -9,7 +9,13 @@
             label="Begin"
             color="primary"
             @click="start()"
+            no-caps
           />
+          <p class="q-my-sm">or skip to</p>
+          <div class="q-gutter-x-sm">
+            <q-btn label="Running" color="red" to="/running" no-caps />
+            <q-btn label="Programming" color="purple" to="/programming" no-caps />
+          </div>
         </div>
       </div>
     </Transition>
@@ -131,7 +137,7 @@ function start() {
 }
 
 onMounted(() => {
-  map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false });
+  map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false });
 
   var gpx = 'GPXs/BCL_Final.gpx' // URL to your GPX file or the GPX itself
   new L.GPX(gpx, {
