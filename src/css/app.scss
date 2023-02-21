@@ -1,8 +1,46 @@
 // app global css in SCSS form
 @import url('https://fonts.googleapis.com/css2?family=Gloock&display=swap');
+@import "../node_modules/rfs/scss";
 
 * {
   font-family: 'Gloock', serif;
+}
+
+.body, html {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.body, html::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+.title {
+  @include font-size(4.5rem);
+  @include margin-top(4.5rem);
+  @include margin-bottom(4.5rem);
+}
+
+.title-no-margin {
+  @include font-size(4rem);
+}
+
+.subtitle {
+  @include font-size(2rem);
+  @include margin-top(2rem);
+}
+
+.subtitle-no-margin {
+  @include font-size(2rem);
+}
+
+.nontitle {
+  @include font-size(1rem);
+}
+
+.ended-modal {
+  background-color: rgba(0, 0, 0, 0.9);
+  width: 900px;
+  max-width: 80vw;
 }
 
 #map {
