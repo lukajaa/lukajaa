@@ -7,7 +7,21 @@
       >
         <div class="absolute-center">
           <p class="title-no-margin col">Lucas K. Chang</p>
-          <p class="subtitle-no-margin col">Run the BCL Championships course with me</p>
+          <p class="subtitle-no-margin col">Run the
+          <q-select
+            v-model="race"
+            :options="race_options"
+            hide-bottom-space
+            dense
+            item-aligned
+          >
+            <template v-slot:selected-item="scope">
+              <span class="text-white subtitle-no-margin text-center">
+                {{ scope.opt.replace(/_/g, ' ') }}
+              </span>
+            </template>
+          </q-select>
+          course with me</p>
           <q-btn label="Begin" color="primary" @click="start()" no-caps />
           <p class="nontitle q-my-sm">or skip to</p>
           <div class="q-gutter-sm">
@@ -33,11 +47,14 @@
         <p>Distance: 3.1 miles (5 kilometers)</p>
         <p>Pace: 5:28 min/mi (3:24 min/km)</p>
         <p>Milestones: {{ Object.keys(achievements).length }}</p>
-        <p>Learn more:</p>
+        <br>
+        <p>Learn more</p>
         <div class="q-gutter-sm">
             <q-btn label="Running" color="red" to="/running" no-caps />
             <q-btn label="Programming" color="purple" to="/programming" no-caps />
-          </div>
+        </div>
+        <p class="q-my-sm">or</p>
+        <q-btn label="Start Over" color="blue" @click="ended=false;started=false" no-caps />
       </div>
     </q-dialog>
   </div>
@@ -45,6 +62,8 @@
 
 <script setup lang="ts">
 import BCL_Finals from '../data/BCL_Finals.json';
+import BCL_1 from '../data/BCL_1.json';
+import CIF_State_Meet from '../data/CIF_State_Meet.json';
 import achievements_json from '../data/achievements.json';
 import { onMounted, ref, watch } from 'vue';
 import 'leaflet/dist/leaflet.css';
@@ -52,10 +71,15 @@ import L from 'leaflet';
 import 'leaflet-gpx';
 
 var achievements: AchievementsType = achievements_json;
+var races_points = {
+  'BCL_Finals': BCL_Finals,
+  'BCL_1': BCL_1,
+  'CIF_State_Meet': CIF_State_Meet,
+}
 
 // VARS
 var map;
-var gpx_length = Object.keys(BCL_Finals).length;
+var current_race;
 var first_date = new Date('2013/12/31');
 var now = new Date();
 var date_diff = now.getTime() - first_date.getTime();
@@ -63,6 +87,10 @@ var date_diff = now.getTime() - first_date.getTime();
 // REFS
 const started = ref<boolean>(false);
 const ended = ref<boolean>(false);
+const race = ref<string>('BCL_Finals');
+const race_options = ref<string[]>(['BCL_Finals', 'BCL_1', 'CIF_State_Meet']);
+
+var gpx_length = Object.keys(races_points[race.value]).length;
 
 // stats
 const date_done = ref<string>('Feb 2013');
@@ -99,7 +127,8 @@ var personalIcon = L.icon({
 function start() {
   started.value = true;
   var index = 0;
-  var runner_marker = L.marker([BCL_Finals[index].lat, BCL_Finals[index].lon], {
+  var race_dict = races_points[race.value]
+  var runner_marker = L.marker([race_dict[0].lat, race_dict[0].lon], {
     icon: runnerIcon,
   }).addTo(map);
 
@@ -110,7 +139,7 @@ function start() {
       runner_marker.remove();
     }
     // update marker position
-    runner_marker.setLatLng([BCL_Finals[index].lat, BCL_Finals[index].lon]);
+    runner_marker.setLatLng([race_dict[index].lat, race_dict[index].lon]);
 
     // update stats
     var percent_done = index / gpx_length;
@@ -150,7 +179,7 @@ function start() {
       } else if (milestone.type == 'personal') {
         milestone_icon = personalIcon;
       }
-      var milestone_marker = L.marker([BCL_Finals[index].lat, BCL_Finals[index].lon], {
+      var milestone_marker = L.marker([race_dict[index].lat, race_dict[index].lon], {
         icon: milestone_icon,
       })
         .addTo(map)
@@ -170,8 +199,28 @@ function start() {
 // WATCHERS
 
 // watch ended value
-watch(ended, function (val) {
-  console.log(val)
+watch(race, function (val) {
+  var old_race = current_race;
+  current_race = new L.GPX('GPXs/' + val + '.gpx', {
+    polyline_options: {
+      color: '#FC4C02',
+      weight: 15,
+      lineCap: 'round',
+    },
+    marker_options: {
+      startIconUrl: '',
+      endIconUrl: '',
+    },
+    async: true,
+  }).on('loaded', function (e) {
+      map.flyToBounds(e.target.getBounds(), {
+        duration: 2,
+      });
+      setTimeout(function() {
+        old_race.remove();
+      }, 2000);
+    })
+  .addTo(map);
 });
 
 onMounted(() => {
@@ -183,8 +232,7 @@ onMounted(() => {
     touchZoom: false,
   });
 
-  var gpx = 'GPXs/BCL_Final.gpx'; // URL to your GPX file or the GPX itself
-  new L.GPX(gpx, {
+  current_race = new L.GPX('GPXs/' + race.value + '.gpx', {
     polyline_options: {
       color: '#FC4C02',
       weight: 15,
