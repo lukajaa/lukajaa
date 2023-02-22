@@ -5,24 +5,32 @@
         v-if="!started"
         class="starting-screen fixed text-center text-white items-center column q-pa-md"
       >
-        <div class="absolute-center">
+        <div class="absolute-center column justify-center">
           <p class="title-no-margin col">Lucas K. Chang</p>
-          <p class="subtitle-no-margin col">Run the
+          <p class="subtitle-no-margin col q-mb-sm">Run the</p>
           <q-select
             v-model="race"
             :options="race_options"
             hide-bottom-space
-            dense
-            item-aligned
+            color="white"
+            items-aligned
+            input-style="text-align: center;"
+            class="self-center"
+            hide-dropdown-icon
+            rounded outlined
+
+            dark
           >
             <template v-slot:selected-item="scope">
-              <span class="text-white subtitle-no-margin text-center">
+              <span class="text-white subtitle-no-margin q-pa-lg">
                 {{ scope.opt.replace(/_/g, ' ') }}
               </span>
             </template>
           </q-select>
-          course with me</p>
-          <q-btn label="Begin" color="primary" @click="start()" no-caps />
+          <p class="subtitle-no-margin col">course with me</p>
+          <div class="col-auto">
+            <q-btn label="Begin" color="primary" @click="start()" no-caps />
+          </div>
           <p class="nontitle q-my-sm">or skip to</p>
           <div class="q-gutter-sm">
             <q-btn label="Running" color="red" to="/running" no-caps />
@@ -43,9 +51,9 @@
     <q-dialog v-model="ended">
       <div class="ended-modal text-white text-center q-pa-md notitle rounded-borders">
         <p class="subtitle-no-margin">Race Report</p>
-        <p>Time: 17:00</p>
-        <p>Distance: 3.1 miles (5 kilometers)</p>
-        <p>Pace: 5:28 min/mi (3:24 min/km)</p>
+        <p>Time: {{ seconds_to_time(races[race].time) }}</p>
+        <p>Distance: {{ races[race].distance }} miles ({{ races[race].distance_km }} km)</p>
+        <p>Pace: {{ races[race].pace }} min/mi ({{ races[race].pace_km }} min/km)</p>
         <p>Milestones: {{ Object.keys(achievements).length }}</p>
         <br>
         <p>Learn more</p>
@@ -54,7 +62,7 @@
             <q-btn label="Programming" color="purple" to="/programming" no-caps />
         </div>
         <p class="q-my-sm">or</p>
-        <q-btn label="Start Over" color="blue" @click="ended=false;started=false" no-caps />
+        <q-btn label="Start Over" color="blue" @click="ended=false;started=false;" no-caps />
       </div>
     </q-dialog>
   </div>
@@ -71,10 +79,10 @@ import L from 'leaflet';
 import 'leaflet-gpx';
 
 var achievements: AchievementsType = achievements_json;
-var races_points = {
-  'BCL_Finals': BCL_Finals,
-  'BCL_1': BCL_1,
-  'CIF_State_Meet': CIF_State_Meet,
+var races : RacesType = {
+  'BCL_Finals': {'json': BCL_Finals, 'time': 1020, 'distance': 3.1, 'distance_km': 5, 'pace': '5:28', 'pace_km': '3:24'},
+  'BCL_1': {'json': BCL_1, 'time': 1082, 'distance': 3.2, 'distance_km': 5.2, 'pace': '5:38', 'pace_km': '3:29'},
+  'CIF_State_Meet': {'json': CIF_State_Meet, 'time': 1025, 'distance': 3.1, 'distance_km': 5, 'pace': '5:30', 'pace_km': '3:26'},
 }
 
 // VARS
@@ -89,8 +97,6 @@ const started = ref<boolean>(false);
 const ended = ref<boolean>(false);
 const race = ref<string>('BCL_Finals');
 const race_options = ref<string[]>(['BCL_Finals', 'BCL_1', 'CIF_State_Meet']);
-
-var gpx_length = Object.keys(races_points[race.value]).length;
 
 // stats
 const date_done = ref<string>('Feb 2013');
@@ -127,7 +133,8 @@ var personalIcon = L.icon({
 function start() {
   started.value = true;
   var index = 0;
-  var race_dict = races_points[race.value]
+  var race_dict = races[race.value].json
+  var gpx_length = Object.keys(race_dict).length;
   var runner_marker = L.marker([race_dict[0].lat, race_dict[0].lon], {
     icon: runnerIcon,
   }).addTo(map);
@@ -196,6 +203,13 @@ function start() {
   }, 5);
 }
 
+function seconds_to_time(seconds: number) : string {
+  var minutes = Math.floor(seconds / 60);
+  var unpadded_seconds = (seconds % 60).toString();
+  var padded_seconds = unpadded_seconds.length > 1 ? unpadded_seconds : '0' + unpadded_seconds;
+  return minutes + ':' + padded_seconds;
+}
+
 // WATCHERS
 
 // watch ended value
@@ -214,11 +228,11 @@ watch(race, function (val) {
     async: true,
   }).on('loaded', function (e) {
       map.flyToBounds(e.target.getBounds(), {
-        duration: 2,
+        duration: 1,
       });
       setTimeout(function() {
         old_race.remove();
-      }, 2000);
+      }, 1000);
     })
   .addTo(map);
 });

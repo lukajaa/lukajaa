@@ -6,6 +6,10 @@
   font-family: 'Gloock', serif;
 }
 
+.q-field {
+  width: fit-content;
+}
+
 .body, html {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
   scrollbar-width: none;  /* Firefox */
@@ -15,26 +19,31 @@
 }
 
 .title {
-  @include font-size(4.5rem);
-  @include margin-top(4.5rem);
-  @include margin-bottom(4.5rem);
+  @include font-size(5.5rem);
+  @include margin-top(5.5rem);
+  @include margin-bottom(5.5rem);
 }
 
 .title-no-margin {
-  @include font-size(4rem);
+  @include font-size(5.5rem);
 }
 
 .subtitle {
-  @include font-size(2rem);
-  @include margin-top(2rem);
+  @include font-size(3rem);
+  @include margin-top(3rem);
+  @include margin-bottom(3rem);
 }
 
 .subtitle-no-margin {
+  @include font-size(3rem);
+}
+
+.midtitle {
   @include font-size(2rem);
 }
 
 .nontitle {
-  @include font-size(1rem);
+  @include font-size(1.5rem);
 }
 
 .ended-modal {

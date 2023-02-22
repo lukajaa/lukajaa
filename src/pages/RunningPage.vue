@@ -11,7 +11,7 @@
           style="height: 100%"
         >
           <q-carousel-slide
-            v-for="picture in 8"
+            v-for="picture in 1"
             :key="picture"
             :name="picture"
             :img-src="'images/Running_' + picture + '.jpg'"
