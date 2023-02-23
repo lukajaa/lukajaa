@@ -22,8 +22,12 @@
       <template v-slot:after>
         <div :class="[isMobile ? 'q-px-none' : 'q-px-xl', 'q-mb-xl', 'hide-scrollbar']">
           <p class="text-center title">Programming</p>
+          <p class="caption text-center">
+            Following in the footsteps of my father and brother, I have been programming since 3rd grade. What started as some tinkering around with scratch turned into one of my favorite hobbies.
+            I have programmed in Javascript, Python, and C#. I currently enjoy programming with VueJS the most, creating websites and web apps.
+          </p>
           <p class="subtitle text-center q-mb-none">Projects</p>
-          <q-list class="nontitle q-mb-lg">
+          <q-list class="caption q-mb-lg">
             <q-expansion-item popup default-opened label="Bay Clock" header-class="midtitle q-py-md">
               <q-separator />
               <q-card>

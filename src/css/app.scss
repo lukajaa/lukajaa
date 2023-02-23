@@ -19,31 +19,31 @@
 }
 
 .title {
-  @include font-size(5.5rem);
-  @include margin-top(5.5rem);
-  @include margin-bottom(5.5rem);
+  @include font-size(5rem);
+  @include margin-top(5rem);
+  @include margin-bottom(5rem);
 }
 
 .title-no-margin {
-  @include font-size(5.5rem);
+  @include font-size(5rem);
 }
 
 .subtitle {
-  @include font-size(3rem);
-  @include margin-top(3rem);
-  @include margin-bottom(3rem);
+  @include font-size(2.5rem);
+  @include margin-top(2.5rem);
+  @include margin-bottom(2.5rem);
 }
 
 .subtitle-no-margin {
-  @include font-size(3rem);
-}
-
-.midtitle {
-  @include font-size(2rem);
+  @include font-size(2.5rem);
 }
 
 .nontitle {
   @include font-size(1.5rem);
+}
+
+.caption {
+  @include font-size(1rem);
 }
 
 .ended-modal {
