@@ -41,6 +41,13 @@
               no-caps
             />
             <q-btn
+              label="Youtube"
+              color="red"
+              href="https://www.youtube.com/@lukaja1828"
+              target="_blank"
+              no-caps
+            />
+            <q-btn
               label="Discord"
               color="blue-14"
               @click="discord"

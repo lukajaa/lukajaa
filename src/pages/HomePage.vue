@@ -12,19 +12,20 @@
             <q-select
               v-model="race"
               :options="race_options"
-              hide-bottom-space
               color="white"
               items-aligned
               input-style="text-align: center;"
+              :style="'opacity:' + race_opacity"
               class="self-center"
               hide-dropdown-icon
-              rounded
-              outlined
               dark
+              hide-bottom-space
+              borderless
             >
               <template v-slot:selected-item="scope">
-                <span class="text-white subtitle-no-margin q-pa-lg">
-                  {{ scope.opt.replace(/_/g, " ") }}
+                <span class="text-white subtitle-no-margin q-px-lg">
+                  <span v-if="race != ''">{{ scope.opt.replace(/_/g, " ") }}</span>
+                  <span v-else>{{ selected_race.replace(/_/g, " ") }}</span>
                 </span>
               </template>
             </q-select>
@@ -80,15 +81,22 @@
               paused = false;
             "
           />
+          <q-btn
+            outline
+            no-caps
+            color="red"
+            @click="skip()"
+            label="Skip to End"
+          />
         </div>
         <p class="nontitle text-white">
-          <q-btn color="red" disable round /> : Running Milestone
+          <q-btn color="red" round /> : Running Milestone
         </p>
         <p class="nontitle text-white">
-          <q-btn color="purple" disable round /> : Programming Milestone
+          <q-btn color="purple" round /> : Programming Milestone
         </p>
         <p class="nontitle text-white">
-          <q-btn color="green" disable round /> : Personal Milestone
+          <q-btn color="green" round /> : Personal Milestone
         </p>
       </div>
     </Transition>
@@ -141,6 +149,8 @@
 import BCL_Finals from '../data/BCL_Finals.json';
 import BCL_1 from '../data/BCL_1.json';
 import CIF_State_Meet from '../data/CIF_State_Meet.json';
+import BCL_2 from '../data/BCL_2.json';
+import Artichoke_Invitational from '../data/Artichoke_Invitational.json';
 import achievements_json from '../data/achievements.json';
 import { onMounted, ref, watch } from 'vue';
 import 'leaflet/dist/leaflet.css';
@@ -174,6 +184,22 @@ var races: RacesType = {
     pace: '5:30',
     pace_km: '3:26',
   },
+  BCL_2: {
+    json: BCL_2,
+    time: 970,
+    distance: 2.95,
+    distance_km: 4.7,
+    pace: '5:28',
+    pace_km: '3:24',
+  },
+  Artichoke_Invitational: {
+    json: Artichoke_Invitational,
+    time: 788,
+    distance: 2.33,
+    distance_km: 3.7,
+    pace: '5:38',
+    pace_km: '3:30',
+  },
 };
 
 // VARS
@@ -181,6 +207,7 @@ const $q = useQuasar(); // quasar instance
 const isMobile = $q.platform.is.mobile;
 var map;
 var current_race;
+var index : number;
 var first_date = new Date('2013/12/31');
 var now = new Date();
 var date_diff = now.getTime() - first_date.getTime();
@@ -188,10 +215,13 @@ var date_diff = now.getTime() - first_date.getTime();
 // REFS
 const started = ref<boolean>(false);
 const ended = ref<boolean>(false);
-const race = ref<string>('BCL_Finals');
-const race_options = ref<string[]>(['BCL_Finals', 'BCL_1', 'CIF_State_Meet']);
+const race = ref<string>('');
+const race_options = ref<string[]>(['BCL_Finals', 'BCL_1', 'CIF_State_Meet', 'BCL_2', 'Artichoke_Invitational']);
 const paused = ref<boolean>(false);
 const endedModal = ref<boolean>(false);
+const race_opacity = ref<number>(1);
+const selected_race = ref<string>('BCL_Finals');
+const skipped = ref<boolean>(false);
 
 // stats
 const date_done = ref<string>('Feb 2013');
@@ -227,14 +257,45 @@ var personalIcon = L.icon({
 
 function start() {
   started.value = true;
-  var index = 0;
+  index = 0;
+  if (race.value == '') {
+    race.value = 'BCL_Finals';
+  }
   var race_dict = races[race.value].json;
+  var race_time = races[race.value].time;
+  var race_distance = races[race.value].distance;
   var gpx_length = Object.keys(race_dict).length;
   var runner_marker = L.marker([race_dict[0].lat, race_dict[0].lon], {
     icon: runnerIcon,
   }).addTo(map);
 
   var move_loop = setInterval(function () {
+    if (skipped.value) {
+      clearInterval(move_loop);
+      index = gpx_length - 1;
+      // render every milestone
+      for (const [date_of, milestone] of Object.entries(achievements)) {
+        var milestone_icon = '';
+        if (milestone.type == 'running') {
+          milestone_icon = runningIcon;
+        } else if (milestone.type == 'programming') {
+          milestone_icon = programmingIcon;
+        } else if (milestone.type == 'personal') {
+          milestone_icon = personalIcon;
+        }
+        var milestone_index= Math.round(((new Date(date_of.replace(/-/g, '/')).getTime() - first_date.getTime()) / date_diff) * gpx_length);
+        var milestone_marker = L.marker([race_dict[milestone_index].lat, race_dict[milestone_index].lon], {
+          icon: milestone_icon,
+        })
+          .addTo(map)
+          .bindPopup(
+            `<p class="nontitle">${milestone.description}</p>${date_of} | <a href="${milestone.link}">Link</a>`
+          );
+        if (milestone.important) {
+          milestone_marker.openPopup();
+        }
+      }
+    }
     if (!paused.value) {
       if (index >= gpx_length - 1) {
         clearInterval(move_loop);
@@ -247,12 +308,12 @@ function start() {
 
       // update stats
       var percent_done = index / gpx_length;
-      var unpadded_distance_done = (Math.round(3.1 * percent_done * 100) / 100).toString();
+      var unpadded_distance_done = (Math.round(race_distance * percent_done * 100) / 100).toString();
       distance_done.value =
         unpadded_distance_done.length > 3
           ? unpadded_distance_done
           : unpadded_distance_done + '0';
-      var total_seconds_done = 1020 * percent_done + 1;
+      var total_seconds_done = race_time * percent_done + 1;
       minutes_done.value = Math.floor(total_seconds_done / 60).toString();
       var unpadded_seconds_done = (Math.round(total_seconds_done % 60) - 1).toString();
       seconds_done.value =
@@ -309,6 +370,12 @@ function seconds_to_time(seconds: number): string {
   return minutes + ':' + padded_seconds;
 }
 
+function skip() {
+  ended.value = true;
+  endedModal.value = true;
+  skipped.value = true;
+}
+
 // WATCHERS
 
 // watch ended value
@@ -346,7 +413,7 @@ onMounted(() => {
     touchZoom: false,
   });
 
-  current_race = new L.GPX('GPXs/' + race.value + '.gpx', {
+  current_race = new L.GPX('GPXs/BCL_Finals.gpx', {
     polyline_options: {
       color: '#FC4C02',
       weight: 15,
@@ -363,4 +430,29 @@ onMounted(() => {
     })
     .addTo(map);
 });
+// toggle blink_on value every second
+var add = false
+var races_index = 0
+var race_blinker = setInterval(function () {
+  if (add) {
+    race_opacity.value += 0.01
+    if (race_opacity.value >= 1) {
+      add = false
+    }
+  } else {
+    race_opacity.value -= 0.01
+    if (race_opacity.value <= 0) {
+      races_index += 1
+      if (races_index > race_options.value.length - 1) {
+        races_index = 0
+      }
+      selected_race.value = race_options.value[races_index]
+      add = true
+    }
+  }
+  if (race.value != '') {
+    clearInterval(race_blinker)
+    race_opacity.value = 1
+  }
+}, 25);
 </script>
